@@ -56,12 +56,14 @@ func worker(file string) {
 	way_writer := csv.NewWriter(way_file) // utf8
 	way_writer.Write([]string{"id","node1","node2"})
 	
-	// // 出力用ファイル
-    // way_file, way_err := os.Open("./edge.csv")
-    // if way_err != nil {
-    //     panic(way_err)
-    // }
-	// defer way_file.Close()
+    // 出力用ファイル
+    tag_file, tag_err := os.Create("./tag.csv")
+    if tag_err != nil {
+        panic(tag_err)
+    }
+    defer tag_file.Close()
+	tag_writer := csv.NewWriter(tag_file) // utf8
+	tag_writer.Write([]string{"id","key","value"})
 	
     var nc, wc, rc, i int64
     progressbar := pb.New(filesiz).SetUnits(pb.U_NO)
@@ -82,6 +84,9 @@ func worker(file string) {
 				}
                 wc++
             case *osmpbf.Relation:
+				for kk,vv:=range v.Tags{
+					tag_writer.Write([]string{strconv.FormatInt(v.ID,10),kk,vv})
+				}
                 rc++
             default:
                 log.Fatalf("unknown type %T\n", v)
@@ -99,4 +104,5 @@ func worker(file string) {
 
 	node_writer.Flush()
 	way_writer.Flush()
+	tag_writer.Flush()
 }
